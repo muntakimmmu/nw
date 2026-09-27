@@ -11,7 +11,7 @@
 ## Primary endpoints and contrasts
 - SPRR, OWE (superiority); Cov (non-inferiority, margin −5 pp).
 - (v1, secondary) Contrasts: full-Δ vs {B4, B5, B6, B8, B10 = B*}; Holm–Bonferroni across 5.
-- (v2, primary) Scope main effect, feedback main effect, and the scope×scale interaction in `harm ~ scope*feedback + log(params) + (1|task) + (1|model)`. Power is computed at the task level.
+- (v2, primary) Scope main effect, feedback main effect, and the scope×scale interaction in `harm ~ scope*feedback + scope*log(params) + (1|task) + (1|model)`. Power is computed at the task level.
 
 ## Exclusions
 - Episodes with infrastructure failure before the first agent action (container crash) are re-run once; the rule is logged.
