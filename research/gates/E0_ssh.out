@@ -1,0 +1,4 @@
+reference          {"ossh96": "N", "go": "M", "ossh105": "M", "legacy": "cl"}  matches Han Table 3: True
+ML-KEM withdrawn   {"ossh96": "N", "go": "cl", "ossh105": "N", "legacy": "cl"}  matches Han Table 3: True
+NTRU withdrawn     {"ossh96": "cl", "go": "M", "ossh105": "M", "legacy": "cl"}  matches Han Table 3: True
+E0 SSH: REPRODUCED

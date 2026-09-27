@@ -1,0 +1,4 @@
+# testbed secrets and build products — never commit private key material or binaries
+research/harness/testbed/.hostkey/
+research/harness/testbed/goclient/goclient
+__pycache__/
