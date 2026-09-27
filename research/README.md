@@ -2,7 +2,7 @@
 
 This directory holds the multi-agent lab's research programme.
 
-**Status:** proposal stage. Nothing has been implemented yet: per the lab protocol (§24–25), implementation begins only after a GO decision and the baseline reproduction (E0).
+**Status:** proposal stage. **Verdict: MODIFY.** The v1 method paper was killed after adversarial review, and the v2 study is gated by G1–G5 (`paper/PROPOSAL.md` §21). Nothing has been implemented yet: per the lab protocol (§24–25), implementation begins only after a GO decision and the baseline reproduction (E0).
 
 | Path | Contents |
 |---|---|

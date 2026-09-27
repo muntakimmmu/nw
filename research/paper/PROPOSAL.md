@@ -1,7 +1,7 @@
 # Widen Freely, Narrow with Evidence: Population-Relational Shielding for Agentic Post-Quantum Migration of Infrastructure
 
 **Research proposal from the multi-agent lab: Agentic PQC in Action for Infrastructure Security**
-Date: 2026-09-27 · Status: **PROPOSAL, NOT YET VERIFIED**. No experiment on the proposed method has been run. The only computations run so far are the lemma sanity checks in `research/analysis/verify_lemmas.py`.
+Date: 2026-09-27 · Status: **PROPOSAL, NOT YET VERIFIED — REVISED after adversarial review (v1 method framing KILLED; see §21)**. No experiment on the proposed method has been run. The only computations run so far are the lemma sanity checks in `research/analysis/verify_lemmas.py`.
 
 > **Epistemic labels.** In this document these labels are used:
 > - **KNOWN**: established in the cited literature or standards.
@@ -257,6 +257,13 @@ The baseline model is $M$: a verifier-in-the-loop LLM agent (A4) whose verifier 
 
 **Selected: Δ1 + Δ2 + Δ3.** These are one conceptual change, not three components: *the verifier's quantifier moves from one artifact or peer to the observed peer population, plus a bound on the unobserved remainder.* Δ3 is the action-typing that follows from Proposition P1, and Δ2 is the part of the quantifier that cannot be discharged logically. **Δ4** is carried as a pre-registered extension experiment (E8). Δ5–Δ8 are rejected for this paper, for the reasons in §10.
 
+> **REVISION (post-review, §18).**
+> - **Δ3 is WITHDRAWN.** Its safety premise (P2) is false under real SSH client-precedence and TLS key_share/HRR semantics (lemmas L3b, L3c), so every widening must also go through Δ1.
+> - **Δ1 on pure removals is equivalent** to the operational rule "never remove an algorithm some observed client negotiated", which AWS already uses (W1). Δ1 differs only on reorderings and mixed changes.
+> - **Δ2's statistical idea has prior art** (Böhme's STADS/FSE'21; Blind-Spot Mass, arXiv 2604.05057), and as stated it bounds traffic rather than entities (W4).
+>
+> The combined method is therefore **not** a defensible ML-venue contribution. See §21 for the redesigned programme.
+
 ---
 
 ## 10. Novelty Collision Report
@@ -308,6 +315,7 @@ None found the composed Δ. **This is "not found", not "does not exist".** Searc
 **Modified $M+\Delta$.** An action $a$ proposes $C\to C'$ on a wave $W\subseteq V$ that is applied asynchronously. The shield $\Sigma$ runs these steps:
 
 1. **Typing (Δ3).** For each $v\in W$, $a$ is a *widening* if $A'_v\supseteq A_v$ and every added algorithm ranks below **every** PQ algorithm in $\pi'_v$ (the PQ-dominance condition). Otherwise it is a *narrowing/reordering*.
+   > **WITHDRAWN (post-review):** unsound under SSH client precedence and TLS key_share/HRR policy (L3b, L3c). All widenings are routed through step 2 with implementation-specific negotiation.
 
 2. **Relational invariant (Δ1).** For every $v\in W$ and every observed class $k\in\hat{\mathcal K}_v$, and for every pair of states $(s_u, s_v)\in\{C,C'\}^2$ over the edge's endpoints (the product condition), check:
 $$\mathrm{Av}:\ \mathrm{neg}(k,s)\neq\bot,\qquad \mathrm{PQmon}:\ \mathrm{neg}(k,C)\in\mathcal A_{PQ}\Rightarrow \mathrm{neg}(k,s)\in\mathcal A_{PQ}.$$
@@ -328,10 +336,21 @@ These are honest, modest statements. Nothing below is claimed as deep.
 - **P1 (asynchronous safety = product condition).** A wave preserves Av on every interleaving iff Av holds on $\{C_u,C'_u\}\times\{C_v,C'_v\}$ for every edge. As a corollary, widenings from an available state are safe under every interleaving. *OBSERVED:* exhaustively checked on 4,000 random instances, 0 mismatches (L1, L2). The proof is two lines: both orders of any two endpoint updates appear as permutation prefixes.
 
 - **P2 (PQ-dominant widening preserves PQmon).** If every added algorithm ranks below all PQ algorithms in the responder's precedence, then no class negotiating PQ before negotiates non-PQ after. The condition is **tight in a useful sense**: "below the best PQ algorithm" is insufficient. Classes sharing only a lower-ranked PQ family are flipped (23 counterexamples, L3), which is the incomparable-class phenomenon of [Han26] again. *OBSERVED* (L3). Proof sketch: the negotiated element for class $k$ is the $\pi$-first element of $A_k\cap A'$. If $\mathrm{neg}$ was a PQ algorithm $p$ and every addition ranks after every PQ algorithm, then additions rank after $p$, so $p$ stays first.
+  > **REFUTED for real protocols (post-review).** P2 holds only in the responder-precedence abstraction.
+  > - **SSH:** the client's order decides. Adding `x25519` to a PQ-only sshd flips any client that lists `x25519` first (L3b).
+  > - **TLS 1.3:** with a server that avoids HRR, a client that sends only an X25519 key share flips from ML-KEM to X25519 when `x25519` is added (L3c). With HRR-enforcing servers it does not.
+  >
+  > What survives is a correct but narrow statement about the abstract model, together with the practical warning that *"dual-stack first" is not automatically PQ-safe*.
 
 - **P3 (soundness relative to observed classes).** If $\Sigma$ accepts, then for every $k\in\hat{\mathcal K}_v$, Av and PQmon hold in every interleaving state, *provided the shadow replay is faithful*. By construction. The content is the fidelity assumption, which E2 tests directly.
 
 - **P4 (residual-risk certificate).** Suppose handshake classes in the window are i.i.d. from a stationary distribution $p$, and deployment traffic follows the same $p$. Then with probability $\ge 1-\delta$, the probability that the next handshake comes from a class outside $\hat{\mathcal K}_v$ is at most $U_v$. Therefore the post-narrowing failure probability is at most $U_v$, because only unseen classes can fail after Δ1 has passed.
+  > **REVISION (post-review).** The reviewer confirmed the direction and constants: Good–Turing is biased upward, E[n₁/N] − E[M₀] = Σp²(1−p)^{N−1} ≥ 0, and McDiarmid applies with c_i = 2/N. However, the guarantee is **per handshake and traffic-weighted**, which is the wrong quantity (W4).
+  > - A new non-degenerate check, L6b, uses 3,000 Zipf(1.0) classes and 20,000 client entities with lognormal rates, so handshakes are clustered by entity.
+  > - Coverage stays at 1.00, but the bound is loose: at T = 1.0 the slack is 0.019 against a true mass of 0.0047.
+  > - The **fraction of entities in unseen classes is about 6× the traffic-weighted mass** (2.8% vs 0.47%).
+  >
+  > An entity- and horizon-level certificate under client-clustered dependence is required; it is open.
   - *Status:* the bound's form follows MS00/MO03, but the **constants are NOT YET VERIFIED**. Stationary mixing Markov arrivals are handled via [JWI24] with a mixing-time penalty.
   - **Impossibility boundary:** without assumptions no such bound exists [MOh19]. A class with period $\tau>T$ has missing mass that is invisible to the estimator.
   - *OBSERVED (simulation L6):* coverage is 1.00 when i.i.d. and 1.00 when $T\ge\tau$, but **0.00 when $T<\tau$** (a class carrying 8% of traffic). This is the pre-registered falsification boundary. The i.i.d. setting is easy with N = 20,000 and 60 classes; realistic long-tail class distributions are E4's job.
@@ -466,27 +485,136 @@ Each experiment maps to a claim (§15 of the lab protocol) and vice versa: see `
 
 ## 18. Adversarial Reviewer Report
 
-*This section is written by an independent hostile-reviewer agent (Agent H) that had not seen the lab's internal reasoning. See `research/paper/REVIEW_AgentH.md` for the full text; a summary appears below.*
+*An independent hostile-reviewer agent (Agent H) wrote this review without access to the lab's internal reasoning. The full text is in `research/paper/REVIEW_AgentH.md`.*
 
-> _To be filled after Agent H returns._
+**Scores:**
+
+| Criterion | Score (1–10) |
+|---|---|
+| Originality | 3 |
+| Technical quality | 3 |
+| Significance | 4 |
+| Evidence (as proposed) | 2 |
+| Clarity | 6 |
+| Reproducibility | 6 |
+
+**Recommendation:** strong reject at NeurIPS/ICML/ICLR; reject at USENIX Security/CCS in its current form. **Confidence:** 4/5.
+
+**The decisive objections:**
+
+1. **(W1) Collapse to a one-line rule.** On removal-only actions, Δ1 is equivalent to "never remove an algorithm some observed client negotiated". AWS already runs this rule in production (TLS 1.0/1.1 removed after 30 days with no connections). With realistic N, Δ2 reduces to "window ≥ τ_max".
+2. **(W2) P2 and Δ3 are unsound** under SSH client precedence and TLS key_share/HRR semantics.
+3. **(W3) The lemma evidence is vacuous.** The L6 i.i.d. regime had zero missing mass, and the periodic case was tautological.
+4. **(W4) Δ2 bounds traffic, not entities**, and ignores clustering by client.
+5. **(W5) The agent is inessential.** The same gate works for humans or scripts, so this is the wrong venue. The only agent-specific science is H3/H4.
+6. **(W6/W7) Leakage and strawman baselines.** Telemetry and harm come from the same generator. The canary lacks a PQ-share KPI (nginx `$ssl_curve`). testssl.sh `-c` already replays client profiles.
+7. **(W8) Replay fidelity is unargued.** HRR, retry-without-PQ, PSK resumption, 0-RTT, ECH, GREASE, SSH strict-KEX, and failures outside A_k all break it.
+8. **(W9) The theory is textbook**, and P5 becomes hypergraph vertex cover (NP-hard) for GOOSE/SV multicast.
+9. **(W10) Nothing has been run, and Han26 has not been read in full.**
+
+**Prior art Agent H surfaced** that the first wave missed: AWS, Azure and Mozilla telemetry-gated deprecation; testssl.sh and SSL Labs client simulation; Cloudflare Automatic Key Exchange (daily per-origin probing); IBM Quantum Safe Remediator; SandboxAQ AQtive Guard; Böhme's residual-risk estimation; Blind-Spot Mass (arXiv 2604.05057).
 
 ---
 
-## 19. Author Rebuttal Simulation
+## 19. Author Rebuttal Simulation (evidence-supported points only)
 
-> _To be filled after §18._
+| # | Reviewer point | Response | Evidence |
+|---|---|---|---|
+| W1 | Δ1 ≡ log rule on removals | **Conceded for pure removals.** Δ1 differs only on reorderings and mixed edits, where "nothing removed" can still flip negotiation (L3: 205 flips from non-dominated additions and reorders; the F3 "restore availability by preferring classical" trap). *Whether such actions are common in real agent trajectories is unknown*, so we cannot rebut without data. This is gate G3 in §21. | L3 (abstract model only) |
+| W2 | P2 unsound | **Conceded and corrected.** Our own checks confirm it (L3b, L3c). Δ3 is withdrawn and P2 marked refuted for real protocols. | L3b, L3c |
+| W3 | Vacuous lemma evidence | **Conceded.** L6b added a heavy-tailed, entity-clustered regime with non-zero missing mass (12.7% / 3.6% / 0.47% at T = 0.05 / 0.2 / 1.0). Coverage 1.00, but the bound is loose. | L6b |
+| W4 | Wrong quantity | **Conceded.** L6b shows the entity-level unseen fraction is 1.6–6× the traffic-weighted mass. No entity- or horizon-level certificate is offered yet. | L6b |
+| W5 | Agent inessential | **Conceded for the method.** The agent-specific questions (H3, H4) are the defensible ML science, so they are promoted to the headline in the redesign (§21). | — |
+| W6/W7 | Leakage, strawman baselines | **Conceded.** Added B\* (log rule + PQ-first ordering + key-share-aware check), B5+ (top-k telemetry classes via testssl-style simulation) and B8+ (canary with a negotiated-PQ-share KPI). Real traces and tickets are required (G3, G5). | — |
+| W8 | Replay fidelity | **Partly rebutted, partly conceded.** Δ1 performs *live handshakes* against a shadow responder, not byte replay, so server-side library semantics (including key_share and HRR policy) are real, not modelled. But client-side state machines (HRR response, retry-without-PQ, resumption) must be emulated. We concede that fidelity must be reported per feature. | Design only |
+| W9 | Textbook theory | **Conceded.** P1–P5 are engineering lemmas, not contributions. The P5 multicast (hypergraph) caveat is accepted. | — |
+| W10 | Nothing run; Han26 unread | **Conceded.** This is gate G1. | — |
+
+**We cannot rebut the core novelty objection (W1 + W5) with evidence currently available.**
 
 ---
 
 ## 20. Contribution Scorecard
 
-> _To be finalised after §18/§19._
+Columns: **v1** is the drafted method paper (population-relational shield). **v2** is the redesigned programme in §21, projected and conditional on its gates.
+
+| Criterion | v1 | v2 (projected, conditional on gates) |
+|---|---|---|
+| Importance | 8/10 | 8/10 |
+| Novelty | 3/10 | 5–6/10 |
+| Mechanistic clarity | 6/10 | 7/10 (factorial design isolates scope from scale) |
+| Technical depth | 4/10 | 5/10 |
+| Evidence potential | 3/10 (synthetic, leaky) | 7/10 *only if* real tickets and telemetry are obtained |
+| Generalization | 4/10 | 6/10 (the scope-vs-scale question transfers to any relational ops change) |
+| Reproducibility | 7/10 | 7/10 |
+| Computational feasibility | 8/10 | 7/10 (≥6 models × factorial design) |
+| Risk of prior-art collision | **HIGH** (AWS rule, testssl, STADS, Han26) | **MEDIUM** (CodAg, Asadli et al. 2026, Han26) |
+| Overall research potential | **3/10** | **5.5/10, rising to about 7 if G3/G4 are positive** |
+
+Q-score (§13 of the lab protocol, 0–1 each):
+
+| | I | F | C | E | G | Q = I·F·C·E·G |
+|---|---|---|---|---|---|---|
+| v1 | 0.8 | 0.7 | 0.3 | 0.3 | 0.4 | **0.020** |
+| v2 | 0.8 | 0.6 | 0.6 | 0.6 | 0.6 | **0.104** |
+
+Novelty vector (N_P, N_M, N_T, N_E):
+- **v1** = (medium, low, low, low). Three of four are weak.
+- **v2** = (medium, low, low, medium-high).
 
 ---
 
 ## 21. GO / MODIFY / KILL
 
-> _To be finalised after §18/§19._
+### Verdict: **MODIFY**
+
+- **v1 is KILLED as a method paper for the target venues.** Its central method is equivalent in safety to an operational rule already in production (AWS), its statistical component has prior art, one of its three components is unsound, and the agent is inessential. Per the lab protocol, we do not continue it because of work already invested.
+- **What survives** is the research programme below. Because it scores under 7/10 on originality before data, it is **not GO**. No method code should be written until gates G1–G4 pass.
+
+### v2: the redesigned contribution (returned to Agents C, D and E per §16 of the protocol)
+
+**Working title:** *Scope, Not Scale: Verifier Quantifier Scope and Counterexample Feedback Determine LLM-Agent Safety in Relational Infrastructure Changes. Evidence from Post-Quantum Migration.*
+
+**Question.** When an agent's action is correct only *relative to a population* (peers, clients, tenants), which matters more for safety?
+- verifier **scope**: artifact, single peer, expert probe set, or telemetry population;
+- verifier **feedback form**: none, pass/fail, or relational counterexample;
+- **model capability**, across at least 6 open and closed models spanning scales.
+
+**Why this is the defensible part:**
+- It is agent-specific, which answers W5.
+- It reconciles a live tension in the literature. [CodAg] found that checker feedback did *not* raise PQC-migration completion. Asadli et al. (arXiv 2606.06212) found that verification tools raised network-repair safety by about 17%. Han26 shows agents *cause* downgrades.
+- H3 is our hypothesis: feedback helps when it is a relational *counterexample*, and not when it is a pass/fail signal on a local check.
+- H4 is our hypothesis: under artifact-scoped verifiers, harm is flat across model scale.
+- The gate (Δ1 without Δ3, plus B\*, B5+ and B8+) becomes an **instrument**, not the claimed contribution.
+
+**Novelty contract, v2:**
+> Verifier-in-the-loop agents are assumed to become safer with stronger models and with verifier feedback. For relational infrastructure changes, which we instantiate with PQ migration, we test whether safety is instead determined by the verifier's quantifier scope and feedback form. We use a factorial design (scope × feedback × model scale) on real change tickets and real client-class populations, with task-level statistics. The new insight, if confirmed, is that scaling models cannot substitute for the right verifier scope; if refuted, that is equally publishable, as a negative result about where agent safety comes from.
+
+**Competitors, v2:** CodAg; Asadli et al. 2026 (arXiv 2606.06212); Han26; NetConfArena (arXiv 2608.23179); Olausson et al., "Is self-repair a silver bullet?" (ICLR 2024) [U]. Collision risk MEDIUM: none varies verifier *scope* as the controlled factor.
+
+### Gates before GO (in order; each has a KILL condition)
+
+| Gate | Action | KILL / redirect condition |
+|---|---|---|
+| **G1** | Read Han26 in full, and check whether its 711,923-change agent corpus is released. | Han26 already contains a constructive population verifier *and* a scope × feedback study → KILL v2 |
+| **G2** | Resolve the arXiv 2512.12989 ID conflict and read CodAg in full, focusing on the checker-feedback design. | CodAg already varies feedback form × verifier scope → KILL v2 |
+| **G3** | **Real-action pilot (about 2 weeks, no method code).** Mine public commits and PRs that touch `KexAlgorithms`, `ssl_ecdh_curve`, `ssl_conf_command Groups`, `Groups`, `ike=`/`esp=` proposals, plus Han's corpus if released. Classify each as pure-removal, reorder, widen or mixed. | Reorders and mixed edits under 5% of crypto-config changes → the Δ1 ≠ B\* distinction is practically void. Redirect to **Track B** (a measurement paper at IMC/USENIX) and drop the ML-venue plan. |
+| **G4** | **E0 + mini-E1:** reproduce Han's gate-failure matrix; then 3 models × 12 real-prose tasks × {B1, B4, B\*, B5+, B8+, Δ1} × {pass/fail, counterexample} feedback. | Baseline SPRR under 10% under artifact-scoped verifiers, **or** no scope or feedback effect with a CI excluding 5 pp → KILL |
+| **G5** | Secure at least one real telemetry source (own infrastructure, a partner, or a university) to parameterise populations and measure incomparable-class prevalence, periodic peers and entity-vs-traffic missing mass. | No real telemetry → confine claims to agent behaviour (H3/H4) and state the limitation |
+
+**Track B (fallback, systems venue).** A multi-organisation measurement of real PQ capability-class populations:
+- prevalence of incomparable minimal classes beyond SSH;
+- tail and periodicity structure;
+- entity-level vs traffic-level unseen mass;
+- a retrospective replay of B\*, B5+ and Δ1 over real change histories.
+
+This track is valuable if data partners exist, and its novelty does not depend on agents.
+
+### Final one-sentence test, v2 (to be re-evaluated after G4)
+
+> Verifier-in-the-loop agents are expected to become safer with scale and feedback. We show that for relational infrastructure changes, of which PQ migration is the sharpest instance, safety is set by what the verifier quantifies over and whether it returns a counterexample, not by model scale. Controlled scope × feedback × scale experiments on real change tickets and client populations show when and why.
+
+*Lab assessment:* the sentence is compelling **if** G4 shows a scope effect larger than the scale effect. The sentence is not yet supported by evidence, so the correct action is **the gated pilots, not implementation.**
 
 ---
 
@@ -500,11 +628,15 @@ L4 vertex-cover proxy lemma violations: 0
 L5 single-peer probe catches: {'mlkem_only_pq': ['drop_mlkem'], 'sntrup_only_pq': ['drop_sntrup'], 'classical': []}
 L5 population (observed-class-set) check catches: ['drop_mlkem', 'drop_sntrup']
 L6 narrowing-certificate coverage (target >= 0.95): {'iid': {'bound': 1.0, 'bare_GT': 1.0}, 'periodic_T_lt_period': {'bound': 0.0, 'bare_GT': 0.0}, 'periodic_T_ge_period': {'bound': 1.0, 'bare_GT': 1.0}}
+L3b SSH client-precedence: PQ-dominant widening flips client orders: [('x25519', 'mlkem768x25519')]
+L3c TLS key_share (before, after) adding x25519 below ML-KEM: {'hrr=True': ('mlkem768x25519', 'mlkem768x25519'), 'hrr=False': ('mlkem768x25519', 'x25519')}
+L6b heavy-tail, entity-clustered certificate: {'T=0.05': {'coverage_clustered': 1.0, 'coverage_iid_control': 1.0, 'mean_true_missing_mass': 0.1272, 'mean_slack': 0.083, 'mean_entity_fraction_unseen': 0.2045}, 'T=0.2': {'coverage_clustered': 1.0, 'coverage_iid_control': 1.0, 'mean_true_missing_mass': 0.0362, 'mean_slack': 0.042, 'mean_entity_fraction_unseen': 0.0949}, 'T=1.0': {'coverage_clustered': 1.0, 'coverage_iid_control': 1.0, 'mean_true_missing_mass': 0.0047, 'mean_slack': 0.0187, 'mean_entity_fraction_unseen': 0.0279}}
 ```
 
 **Caveats:**
 - These are small-instance, abstract-model checks. They do not validate shadow-replay fidelity, library semantics, or any agent behaviour.
-- The L6 i.i.d. case is easy (60 classes, N = 20,000); realistic heavy tails are E4's job.
+- **L6 (i.i.d. and periodic) is vacuous, as Agent H pointed out (W3).** L6b is the non-degenerate replacement.
+- L3b and L3c *refute* P2 for real SSH and TLS (no-HRR) semantics.
 
 ### Appendix B. Research-integrity ledger
 

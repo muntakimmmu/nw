@@ -261,6 +261,104 @@ def missing_mass_calibration(runs=200, delta=0.05):
     return results
 
 
+# ---------------------------------------------------------------- L3b / L3c
+# Added after the adversarial review (Agent H, W2): P2 was proved only for the
+# responder-precedence abstraction.  Real protocols differ.
+def neg_ssh(client_pref: tuple, server_set: frozenset):
+    """SSH KEX: first algorithm in the CLIENT's list that the server supports."""
+    for alg in client_pref:
+        if alg in server_set:
+            return alg
+    return None
+
+
+def neg_tls_keyshare(groups: tuple, shares: frozenset, server_set: frozenset,
+                     server_pref: tuple, hrr: bool):
+    """TLS 1.3: server picks by its preference among mutually supported groups;
+    if the chosen group has no key_share it either sends HRR (hrr=True) or
+    settles for the best mutually supported group that already has a share."""
+    mutual = [g for g in server_pref if g in server_set and g in groups]
+    if not mutual:
+        return None
+    if hrr or mutual[0] in shares:
+        return mutual[0]
+    with_share = [g for g in mutual if g in shares]
+    return with_share[0] if with_share else mutual[0]
+
+
+def p2_real_semantics():
+    """Count PQ->classical flips caused by a 'PQ-dominant' widening
+    (adding classical C to a PQ-only responder, ranked below all PQ)."""
+    server = frozenset({P})
+    new_server = server | {C}
+    ssh_flips = [
+        cp for cp in itertools.permutations([C, P])
+        if neg_ssh(cp, server) in PQ and neg_ssh(cp, new_server) not in PQ
+    ]
+    tls = {}
+    for hrr in (True, False):
+        # client supports both, but only sends an X25519 share (common default)
+        before = neg_tls_keyshare((P, C), frozenset({C}), server, (P, C), hrr)
+        after = neg_tls_keyshare((P, C), frozenset({C}), new_server, (P, C), hrr)
+        tls[f"hrr={hrr}"] = (before, after)
+    return ssh_flips, tls
+
+
+# ---------------------------------------------------------------- L6b
+def missing_mass_heavy_tail_clustered(runs=100, delta=0.05):
+    """Added after review (W3/W4): non-degenerate regime.  3,000 classes with
+    Zipf(1.0) popularity; 20,000 client ENTITIES each fixed to one class with
+    lognormal handshake rates; the window observes Poisson(rate*T) handshakes
+    per entity.  Handshakes are therefore clustered by entity (not i.i.d.).
+    Target: traffic-weighted mass of classes with no observed handshake.
+    Also reports entity-level quantity: fraction of entities in unseen classes."""
+    rng = random.Random(SEED + 4)
+    k, n_ent = 3000, 20000
+    w = [1 / (i + 1) for i in range(k)]
+    out = {}
+    for T in (0.05, 0.2, 1.0):
+        cov_h = cov_iid = 0
+        tight, ent_missing, true_mm = [], [], []
+        for _ in range(runs):
+            cls = rng.choices(range(k), weights=w, k=n_ent)
+            rate = [math.exp(rng.gauss(0, 1.5)) for _ in range(n_ent)]
+            tot = sum(rate)
+            counts = Counter()
+            for c, r in zip(cls, rate):
+                lam = r * T
+                # Poisson sample (Knuth for small lam, normal approx for large)
+                if lam < 30:
+                    L, x, prod = math.exp(-lam), 0, rng.random()
+                    while prod > L:
+                        x += 1
+                        prod *= rng.random()
+                else:
+                    x = max(0, int(rng.gauss(lam, math.sqrt(lam)) + 0.5))
+                if x:
+                    counts[c] += x
+            seen = set(counts)
+            mm = sum(r for c, r in zip(cls, rate) if c not in seen) / tot
+            ub = gt_upper_bound(counts, delta)
+            cov_h += mm <= ub
+            tight.append(ub - mm)
+            true_mm.append(mm)
+            ent_missing.append(sum(1 for c in cls if c not in seen) / n_ent)
+            # i.i.d. control with the same N: resample handshakes independently
+            n = sum(counts.values())
+            iid = Counter(rng.choices(cls, weights=rate, k=n))
+            seen_iid = set(iid)
+            mm_iid = sum(r for c, r in zip(cls, rate) if c not in seen_iid) / tot
+            cov_iid += mm_iid <= gt_upper_bound(iid, delta)
+        out[f"T={T}"] = {
+            "coverage_clustered": cov_h / runs,
+            "coverage_iid_control": cov_iid / runs,
+            "mean_true_missing_mass": round(sum(true_mm) / runs, 4),
+            "mean_slack": round(sum(tight) / runs, 4),
+            "mean_entity_fraction_unseen": round(sum(ent_missing) / runs, 4),
+        }
+    return out
+
+
 if __name__ == "__main__":
     m, wv = check_product_condition()
     print(f"L2 product-condition vs explicit interleavings: mismatches={m}")
@@ -273,3 +371,7 @@ if __name__ == "__main__":
     print(f"L5 single-peer probe catches: {sp}")
     print(f"L5 population (observed-class-set) check catches: {pop}")
     print(f"L6 narrowing-certificate coverage (target >= 0.95): {missing_mass_calibration()}")
+    ssh_flips, tls = p2_real_semantics()
+    print(f"L3b SSH client-precedence: PQ-dominant widening flips client orders: {ssh_flips}")
+    print(f"L3c TLS key_share (before, after) adding x25519 below ML-KEM: {tls}")
+    print(f"L6b heavy-tail, entity-clustered certificate: {missing_mass_heavy_tail_clustered()}")

@@ -5,3 +5,6 @@ L4 vertex-cover proxy lemma violations: 0
 L5 single-peer probe catches: {'mlkem_only_pq': ['drop_mlkem'], 'sntrup_only_pq': ['drop_sntrup'], 'classical': []}
 L5 population (observed-class-set) check catches: ['drop_mlkem', 'drop_sntrup']
 L6 narrowing-certificate coverage (target >= 0.95): {'iid': {'bound': 1.0, 'bare_GT': 1.0}, 'periodic_T_lt_period': {'bound': 0.0, 'bare_GT': 0.0}, 'periodic_T_ge_period': {'bound': 1.0, 'bare_GT': 1.0}}
+L3b SSH client-precedence: PQ-dominant widening flips client orders: [('x25519', 'mlkem768x25519')]
+L3c TLS key_share (before, after) adding x25519 below ML-KEM: {'hrr=True': ('mlkem768x25519', 'mlkem768x25519'), 'hrr=False': ('mlkem768x25519', 'x25519')}
+L6b heavy-tail, entity-clustered certificate: {'T=0.05': {'coverage_clustered': 1.0, 'coverage_iid_control': 1.0, 'mean_true_missing_mass': 0.1272, 'mean_slack': 0.083, 'mean_entity_fraction_unseen': 0.2045}, 'T=0.2': {'coverage_clustered': 1.0, 'coverage_iid_control': 1.0, 'mean_true_missing_mass': 0.0362, 'mean_slack': 0.042, 'mean_entity_fraction_unseen': 0.0949}, 'T=1.0': {'coverage_clustered': 1.0, 'coverage_iid_control': 1.0, 'mean_true_missing_mass': 0.0047, 'mean_slack': 0.0187, 'mean_entity_fraction_unseen': 0.0279}}
