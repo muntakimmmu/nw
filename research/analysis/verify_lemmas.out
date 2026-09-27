@@ -1,0 +1,7 @@
+L2 product-condition vs explicit interleavings: mismatches=0
+L1 widening-only waves that broke availability: 0
+L3 widening ranked below ALL PQ algs flipping PQ->classical: 0; not-below-all counterexamples: 205 (of which ranked below best PQ only: 23)
+L4 vertex-cover proxy lemma violations: 0
+L5 single-peer probe catches: {'mlkem_only_pq': ['drop_mlkem'], 'sntrup_only_pq': ['drop_sntrup'], 'classical': []}
+L5 population (observed-class-set) check catches: ['drop_mlkem', 'drop_sntrup']
+L6 narrowing-certificate coverage (target >= 0.95): {'iid': {'bound': 1.0, 'bare_GT': 1.0}, 'periodic_T_lt_period': {'bound': 0.0, 'bare_GT': 0.0}, 'periodic_T_ge_period': {'bound': 1.0, 'bare_GT': 1.0}}

@@ -1,0 +1,66 @@
+# Claim -> evidence contract (lab protocol §15, §26).
+# A claim with no experiment is prohibited; an experiment supporting no claim is removed.
+# Status values: HYPOTHESIZED | SUPPORTED | REFUTED | PARTIAL. Nothing has been run yet.
+
+C1:
+  claim: >
+    A population-relational shield (Δ1+Δ2+Δ3) reduces silent PQ regressions (SPRR) and
+    traffic-weighted outages (OWE) of LLM agents migrating live infrastructure, without
+    reducing traffic-weighted PQ coverage (Cov, non-inferiority margin -5 pp), relative to
+    artifact-scoped, single-peer, expert-probe-set, expert-rule, log-rule and canary-rollback verifiers.
+  experiments: [E1, E5]
+  status: HYPOTHESIZED
+
+C2:
+  claim: >
+    The improvement is caused by the verifier's relational recall (rho) over observed peer
+    classes: harm falls monotonically as telemetry coverage rises, and baseline recall equals
+    the fraction of violation-bearing classes their probe set covers.
+  experiments: [E2, E3]
+  status: HYPOTHESIZED
+
+C3:
+  claim: >
+    The missing-mass narrowing certificate is calibrated (coverage >= 1 - delta) when the
+    observation window covers the longest peer period, and fails when it does not
+    (failure boundary T/tau = 1).
+  experiments: [E4, E10]
+  status: HYPOTHESIZED   # abstract-model simulation L6 is consistent; not evidence about real estates
+
+C4:
+  claim: >
+    The effect generalises across TLS 1.3, SSH and IKEv2 and to an OT segment, where plans
+    respect the vertex-cover proxy rule (P5).
+  experiments: [E5, E6]
+  status: HYPOTHESIZED
+
+C5:
+  claim: >
+    Relational counterexample feedback keeps SPRR low under downgrade-inducing prose,
+    injected observation fields, and ossifying middleboxes (and, with Δ4, redirects
+    'fix timeouts' tasks to PQ-preserving remediations).
+  experiments: [E7, E8]
+  status: HYPOTHESIZED
+
+C6:
+  claim: >
+    Shield overhead (replays, latency, tokens) is small relative to change windows.
+  experiments: [E9]
+  status: HYPOTHESIZED
+
+C7:
+  claim: >
+    Verifier quantifier scope, not model capability, bounds agent safety: under
+    artifact-scoped verifiers, stronger models do not have lower SPRR (H4).
+  experiments: [E1]
+  status: HYPOTHESIZED
+
+sanity:
+  E0: Testbed reproduces the gate-failure matrix of Han (arXiv 2609.07849) before any Δ run.
+
+theory_checks:   # OBSERVED on small abstract instances only (research/analysis/verify_lemmas.out)
+  P1: product condition == all-interleavings availability (L1, L2: 0 mismatches)
+  P2: PQ-dominant widening preserves PQ negotiation; 'below best PQ' is insufficient (L3)
+  P4: certificate boundary T<tau reproduced in simulation (L6)
+  P5: min proxies == min vertex cover of G[S] (L4: 0 violations, n<=6)
+  L5: incomparable-class example — single-peer probes each miss one withdrawal

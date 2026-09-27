@@ -1,0 +1,32 @@
+# Every run writes one record conforming to this schema (lab protocol §24).
+# Records are append-only JSONL under research/manifests/runs/<experiment_id>.jsonl
+type: object
+required:
+  - experiment_id        # E0..E10
+  - run_id               # uuid4
+  - git_commit
+  - dataset_version      # sha256 of population spec + task-suite YAML
+  - seed
+  - configuration_hash   # sha256 of resolved config (condition, model, budgets)
+  - condition            # B0..B10 | full | ablation id
+  - model                # {id, provider, version/date, temperature, api_seed}
+  - model_parameters     # parameter count if open-weight, else null
+  - container_digests    # {openssl, openssh, strongswan, go, nginx, ...: sha256}
+  - hardware             # cpu, ram, gpu, host
+  - wall_time_s
+  - tokens               # {prompt, completion}
+  - verifier_calls
+  - metrics              # {sprr, owe, cov, escalations, false_blocks, rho, ...}
+  - timestamp            # ISO-8601 UTC
+properties:
+  experiment_id: {type: string, pattern: "^E(10|[0-9])$"}
+  seed: {type: integer}
+  metrics:
+    type: object
+    properties:
+      sprr: {type: number, description: "1 if any edge moved PQ->non-PQ without alarm"}
+      owe: {type: number, description: "traffic-weighted fraction of failed-handshake edges"}
+      cov: {type: number, description: "traffic-weighted fraction of edges negotiating PQ"}
+      escalations: {type: integer}
+      false_blocks: {type: integer, description: "shield rejections of actions later shown safe by live replay"}
+      rho: {type: number, description: "relational recall on injected violations (E2/E3)"}
