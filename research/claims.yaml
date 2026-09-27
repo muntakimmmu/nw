@@ -26,10 +26,17 @@ v2:
     status: HYPOTHESIZED
   S3:
     claim: >
-      In real crypto-config change histories, reorderings and mixed edits (where a removal-only
-      log rule is blind) are a non-negligible share (>= 5%) of changes.
+      Among real agent-produced crypto-config edits that regress PQ delivery, non-removal edits
+      (demotion, composition — where a removal-only log rule is blind) are a non-negligible share (>= 5%).
     experiments: [G3-pilot]
-    status: HYPOTHESIZED
+    status: SUPPORTED_ON_HAN_DATA   # 211/375 = 56.3% [51.2, 61.2] non-removal (research/gates/g3_han_episodes.out);
+                                    # external validity limited to Han's ticket families
+  S5:
+    claim: >
+      Verifier-scope effect is protocol-dependent: ≈0 beyond a stock-client pin on TLS (one hybrid
+      family), positive on SSH (incomparable NTRU-Prime-only / ML-KEM-only classes).
+    experiments: [G4, E6]
+    status: HYPOTHESIZED   # TLS half consistent with Han data: stock pin recall 375/375
   S4:
     claim: >
       Real client populations contain incomparable minimal PQ capability classes beyond SSH, and

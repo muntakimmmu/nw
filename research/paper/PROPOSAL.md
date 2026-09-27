@@ -54,8 +54,8 @@ The table below groups 30 items by their methodological relationship to the prop
 
 | Key | Paper | Venue / ID | Label | One-line relevance |
 |---|---|---|---|---|
-| **Han26** | Y. Han, *Nothing Breaks: No Single Peer Can Soundly Gate Post-Quantum Delivery* | arXiv 2609.07849 (7 Sep 2026) | [V] | **P\*** (§4). PQ protection is a server × client-population relation. Shipped SSH clients form ≥2 incomparable minimal PQ classes, so no single-peer gate is sound. File checks, vendor dumps, CBOM scores and auditor exit codes all miss PQ-KEX removal. LLM agents are induced into downgrades by ordinary engineering prose. |
-| **CodAg** | *Can Coding Agents Migrate to Post-Quantum Cryptography?* | arXiv ID conflicts with 2512.12989 | [P] | Go RSA→ML-DSA-44 signer, 160 agent attempts. 12 patches pass local checks but fail the external requirements. Checker feedback did not raise completion. |
+| **Han26** | Y. Han, *Nothing Breaks: No Single Peer Can Soundly Gate Post-Quantum Delivery* | arXiv 2609.07849 (7 Sep 2026) | **[FULL TEXT READ]** + artifact audited | **P\*** (§4). PQ protection is a server × client-population relation. Shipped SSH clients form ≥2 incomparable minimal PQ classes, so no single-peer gate is sound. File checks, vendor dumps, CBOM scores and auditor exit codes all miss PQ-KEX removal. LLM agents are induced into downgrades by ordinary engineering prose. |
+| **CodAg** | A. Alquwayfili, *Can Coding Agents Migrate to Post-Quantum Cryptography?* | arXiv 2512.12989**v3** (20 Sep 2026; v1 = Quantigence) | [V] | Go RSA→ML-DSA-44 signer, 160 agent attempts. 12 patches pass local checks but fail the external requirements. Checker feedback did not raise completion. |
 | Quant25 | A. Alquwayfili, *Quantigence: multi-agent AI framework for quantum security research* | arXiv 2512.12989 | [V] | Supervisor + 4 role agents + MCP. QARS extends the Mosca inequality. Analysis only, no actuation. |
 | Pall26 | J. Pallarés de Bonrostro, A. I. González-Tablas, M. I. González Vasco, *Empirical evaluation of LLMs for migration of code fragments to PQC* | arXiv 2606.07341 | [V] | ~800 fragment pairs. Fine-tuned GPT-4.1-mini reaches 92.5% dynamic functional correctness. |
 | Shaw26 | A. Shaw, *Quantum-Safe Code Auditing* | arXiv 2604.00560 | [V] | Regex + LLM enrichment + risk score. Code on GitHub. |
@@ -159,6 +159,8 @@ $$C_{k+1} = \mathrm{LLM}(C_k,\ V(C_k),\ \mathrm{ctx}), \quad \text{stop when } V
 | Main result | **Negative.** Only a delivery-anchored check catches all six regressions. Its verdict depends on "which peer profile it probes with — **an input nothing supplies**", and no single choice is sound. | **Constructive.** Supply that input from the responder's own handshake telemetry: quantify over the *observed* capability-class population and bound the *unobserved* remainder statistically. |
 | Scope | SSH and TLS; 7 configurations; LLM agents shown to *cause* downgrades | TLS, SSH and IKEv2. Covers both failure directions: PQ withdrawal *and* classical-removal outages. Includes OT gateways. Evaluates agents end-to-end. |
 | Guarantee | Impossibility for single peers | Soundness on observed classes, plus a residual-risk certificate for unseen classes with an explicit failure boundary |
+
+> **CORRECTION (G1, full text read).** The table above was written from Han26's abstract, and its "Constructive" row is wrong. Han26 already implements the constructive verifier, **`pqgate`**, which probes a *named* peer set at the write boundary (§8.1, App. K). What Han leaves open is (i) *which* peer set ("deployment policy"; no telemetry derivation) and (ii) any evaluation of the gate *inside an agent loop* ("the adaptive operator untested"). v2 targets (ii). See `research/gates/G1.md`.
 
 **The single-sentence difference from P\*:** Han proves that a delivery-anchored check needs a peer-population input and that no fixed peer provides it. We supply that input from telemetry, turn the check into an agent shield, bound the error on the part telemetry cannot see, and measure what this does to agent outcomes.
 
@@ -548,7 +550,7 @@ Columns: **v1** is the drafted method paper (population-relational shield). **v2
 | Generalization | 4/10 | 6/10 (the scope-vs-scale question transfers to any relational ops change) |
 | Reproducibility | 7/10 | 7/10 |
 | Computational feasibility | 8/10 | 7/10 (≥6 models × factorial design) |
-| Risk of prior-art collision | **HIGH** (AWS rule, testssl, STADS, Han26) | **MEDIUM** (CodAg, Asadli et al. 2026, Han26) |
+| Risk of prior-art collision | **HIGH** (AWS rule, testssl, STADS, Han26) | **MEDIUM-HIGH** after G1 (no collision today, but Han26 flags the in-loop question as open; race risk) |
 | Overall research potential | **3/10** | **5.5/10, rising to about 7 if G3/G4 are positive** |
 
 Q-score (§13 of the lab protocol, 0–1 each):
@@ -566,7 +568,9 @@ Novelty vector (N_P, N_M, N_T, N_E):
 
 ## 21. GO / MODIFY / KILL
 
-### Verdict: **MODIFY**
+### Verdict: **MODIFY** (unchanged after gate execution)
+
+> **Gate status (2026-09-27):** G1 passed, G2 partially passed, G3 passed, G4 blocked on user inputs (API keys and budget), G5 open (non-blocking). v2 survives every gate that can currently be evaluated. It does **not** become GO until G4. G1 also raised the race risk: Han names "the adaptive operator untested" as an open item, and that is v2's question.
 
 - **v1 is KILLED as a method paper for the target venues.** Its central method is equivalent in safety to an operational rule already in production (AWS), its statistical component has prior art, one of its three components is unsound, and the agent is inessential. Per the lab protocol, we do not continue it because of work already invested.
 - **What survives** is the research programme below. Because it scores under 7/10 on originality before data, it is **not GO**. No method code should be written until gates G1–G4 pass.
@@ -592,17 +596,31 @@ Novelty vector (N_P, N_M, N_T, N_E):
 
 **Competitors, v2:** CodAg; Asadli et al. 2026 (arXiv 2606.06212); Han26; NetConfArena (arXiv 2608.23179); Olausson et al., "Is self-repair a silver bullet?" (ICLR 2024) [U]. Collision risk MEDIUM: none varies verifier *scope* as the controlled factor.
 
-### Gates before GO (in order; each has a KILL condition)
+### Gates before GO (repaired 2026-09-27; status as of the same date; details in `research/gates/`)
 
-| Gate | Action | KILL / redirect condition |
-|---|---|---|
-| **G1** | Read Han26 in full, and check whether its 711,923-change agent corpus is released. | Han26 already contains a constructive population verifier *and* a scope × feedback study → KILL v2 |
-| **G2** | Resolve the arXiv 2512.12989 ID conflict and read CodAg in full, focusing on the checker-feedback design. | CodAg already varies feedback form × verifier scope → KILL v2 |
-| **G3** | **Real-action pilot (about 2 weeks, no method code).** Mine public commits and PRs that touch `KexAlgorithms`, `ssl_ecdh_curve`, `ssl_conf_command Groups`, `Groups`, `ike=`/`esp=` proposals, plus Han's corpus if released. Classify each as pure-removal, reorder, widen or mixed. | Reorders and mixed edits under 5% of crypto-config changes → the Δ1 ≠ B\* distinction is practically void. Redirect to **Track B** (a measurement paper at IMC/USENIX) and drop the ML-venue plan. |
-| **G4** | **E0 + mini-E1:** reproduce Han's gate-failure matrix; then 3 models × 12 real-prose tasks × {B1, B4, B\*, B5+, B8+, Δ1} × {pass/fail, counterexample} feedback. | Baseline SPRR under 10% under artifact-scoped verifiers, **or** no scope or feedback effect with a CI excluding 5 pp → KILL |
-| **G5** | Secure at least one real telemetry source (own infrastructure, a partner, or a university) to parameterise populations and measure incomparable-class prevalence, periodic peers and entity-vs-traffic missing mass. | No real telemetry → confine claims to agent behaviour (H3/H4) and state the limitation |
+**Defects in the first gate draft, and how each was fixed:**
 
-**Track B (fallback, systems venue).** A multi-organisation measurement of real PQ capability-class populations:
+1. **Self-contradiction.** The verdict banned "method code" until G4 passed, yet G4 cannot run without a testbed and a verifier. **Fix:** *instrument* code is allowed from G4 onward: testbed, verifier integration, baselines, and the scorer frozen by pre-registration. What stays banned until GO is any code or tuning whose output is a claimed method improvement.
+2. **Wrong logic in G1.** The kill condition was an AND of "constructive verifier" and "scope × feedback study". A constructive verifier alone does not kill v2, which uses the verifier as an instrument; a scope/feedback study alone does. **Fix:** kill only on an in-loop scope or feedback study; a constructive verifier means *cite and adopt*.
+3. **G3 was miscalibrated and infeasible.** Its threshold tested the dead v1 distinction (Δ1 vs B\*), and its redirect dropped the whole ML plan. Its data source, public commit mining, already failed in Han26: 3,145 commits gave 30 replay images, and his kill rule fired (§12). The AIDev corpus Han also uses has 3 PRs touching crypto algorithm lists and 0 touching PQ identifiers. **Fix:** measure *real agent trajectories*, meaning Han's released episodes. The kill condition now removes only the B\*-vs-population contrast, using an upper confidence bound.
+4. **Ambiguous statistics in G4.** "A CI excluding 5 pp" was ambiguous, a 3-model pilot cannot test scale, and pilot data could leak into the confirmatory analysis. **Fix:** a futility criterion on upper CI bounds; scale is deferred to the main study (≥ 6 models); pilot tasks and seeds are kept disjoint from the confirmatory ones.
+5. **G5 was not a gate.** It had no kill condition. **Fix:** it is re-labelled a *non-blocking claim limiter*.
+6. **No dependency order.** **Fix:** G1, G2, G3 and G5 are independent; G4 depends on G1–G3; GO depends on G4.
+
+| Gate | Action | KILL / redirect condition | Status |
+|---|---|---|---|
+| **G1** | Read Han26 in full | Han26 contains an **in-loop** study that varies verifier scope *or* feedback form given to agents → KILL v2. A constructive verifier alone → cite and adopt as instrument. | **PASSED** (full text read via user upload). Han builds `pqgate` (a write-boundary monitor that probes a *named* peer set; the peer set is a required argument "with no default", left as deployment policy). It was "evaluated as a detector only", never in an agent loop. Agent defenses studied are prompts and detectors, never verifier feedback. **Consequences:** Δ1-as-method is fully subsumed and dropped; v2 adopts `pqgate` (MIT) as its instrument; the scope axis must include Han's *minimal cover* (one peer per incomparable class) as the strongest non-telemetry level; the peer-class definition must include key-share behaviour (Han: identical capability sets split by pre-sent shares). `research/gates/G1.md` |
+| **G2** | Resolve the 2512.12989 ID; read CodAg | CodAg varies feedback **form** or verifier **scope** → KILL v2 | **PARTIAL PASS.** ID resolved: one arXiv record by A. Alquwayfili, where v1 (Dec 2025) is *Quantigence* and v3 (20 Sep 2026) is *Can Coding Agents Migrate to PQC?* [V-snippet]. The abstract shows one binary factor (checker access or none) on one Go task. Full text is blocked by network policy; **upload needed to close.** `research/gates/G2.md` |
+| **G3** | Classify how *real agent edits* produce PQ regressions, on Han's released 720-episode nginx/OpenSSL 3.5.7 delivery study (6 snapshots, 5 lineages; the data's paper-level checks C10, C11, C15 and C16 re-verified with Han's own audit script) | Upper 95% CI of the non-removal share of regressions < 5% → drop the B\*-vs-population contrast (not the ML plan) | **PASSED.** 211/375 = **56.3% [51.2, 61.2]** of ground-truth regressions are non-removal edits (demotions and composition), invisible to a removal-only log rule. The share is 26/46 (57%) in *neutral* tickets alone. `research/gates/g3_han_episodes.{py,out}` |
+| **G4** | Instrumented pilot: E0 (reproduce Han's gate matrix with `pqgate`), then ≥ 3 models × 12 tasks (disjoint from confirmatory) × scope {file, stock pin, PQ pin, minimal cover, census} × feedback {none, pass/fail, counterexample} × 2 seeds, on the **SSH arm** (primary) and **TLS arm** (negative control) | On the SSH arm: baseline SPRR < 10% **or** (upper 95% CI of the scope effect < 5 pp **and** upper 95% CI of the feedback effect < 5 pp) → KILL | **BLOCKED on user:** needs model API keys and about $20–40 of budget (Han's study cost $14.06 for 720 episodes, about $0.02 each). Design ready; see below. |
+| **G5** | Real telemetry source | *Non-blocking:* without it, no claim about real population distributions; the scope frame is Han's 13-client shipped census | **OPEN.** Needs a data partner or your own infrastructure. |
+
+**What G1 and G3 changed in the v2 design (pre-registered predictions):**
+- **Where the scope effect should appear.** In Han's TLS data, a single *stock-client* pin catches **375/375** regressions and the PQ-prober pin catches 232/375. A single well-chosen peer therefore suffices on today's TLS population (one hybrid family). *Prediction:* the scope effect beyond a stock pin is ≈ 0 on TLS (negative control), and positive on SSH, where Han proves no single pin is sound (incomparable NTRU-Prime-only and ML-KEM-only classes). If the SSH scope effect is also ≈ 0, the scope half of v2 is refuted.
+- **The outage direction has not appeared in real agent data.** 0/699 valid episodes broke a previously connecting profile. The v1 availability and missing-mass motivation (Δ2, OWE) is therefore unsupported by agent evidence and is **demoted to secondary**.
+- **No scale gradient visible so far.** Per-snapshot regression rates are 44–58% across all 6 snapshots, including claude-sonnet-5 at 52/118 on this ticket family. This is *consistent with* H4, but model identity was not randomised, and the attack tickets request the classical end state, so it is not evidence yet.
+
+**Track B (fallback, systems venue).** A multi-organisation measurement of real PQ capability-class populations. It is still available if G4 kills v2, and it requires G5:
 - prevalence of incomparable minimal classes beyond SSH;
 - tail and periodicity structure;
 - entity-level vs traffic-level unseen mass;
@@ -642,6 +660,8 @@ L6b heavy-tail, entity-clustered certificate: {'T=0.05': {'coverage_clustered': 
 
 - **No experiment on the proposed method has been run.** All E-results above are HYPOTHESIZED.
 - Several 2026 arXiv items were confirmed only through search-index snippets. Every number drawn from them must be re-checked against the full text before submission.
-- The arXiv ID 2512.12989 is indexed under two titles (Quantigence / "Can Coding Agents Migrate to PQC?"). Resolve this before citing.
+- ~~The arXiv ID 2512.12989 is indexed under two titles.~~ Resolved (G2): these are v1 and v3 of one record.
+- §4 originally claimed, from the abstract alone, that Han26 offers no constructive verifier. The full text (G1) refutes this, and the correction is placed inline in §4.
+- G3 uses Han's released episode data, treated as data. Han's audit script shows the public tree holds raw rows for 8,162 of the claimed 21,940 episodes. The delivery-study rows we use pass every related audit check.
 - Agent C excluded golang/go#80573 as internally inconsistent.
 - The P4 constants and the P6 scheduling claims (Δ6, Agent F) are NOT YET VERIFIED. Δ6 is excluded from this paper.
