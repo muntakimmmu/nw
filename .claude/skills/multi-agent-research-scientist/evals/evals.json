@@ -1,0 +1,8 @@
+{
+  "skill_name": "multi-agent-research-scientist",
+  "evals": [
+    {"id": 1, "prompt": "TOPIC: test-time adaptation for time-series forecasting under abrupt regime shifts. OPTIONAL CONSTRAINTS: single GPU, public datasets only. TARGET VENUE: ICLR. Find me a defensible contribution — I don't want another 'A+B' paper.", "expected_output": "21-section report with a P* identified from real searches, R_gap-ranked regimes, >=5 candidate deltas with collision risks, a hostile review with scores, and a GO/MODIFY/KILL verdict with gates", "files": []},
+    {"id": 2, "prompt": "my idea: use conformal prediction to decide when an LLM coding agent should ask a human before running a shell command. is this novel enough for neurips? be brutal", "expected_output": "prior-art collision analysis (KnowNo, conformal risk control for agents, etc.), honest novelty verdict, and either a narrowed defensible delta or KILL", "files": []},
+    {"id": 3, "prompt": "Agentic PQC in action for infrastructure security — turn this into a research contribution", "expected_output": "topic interpretation with marked assumptions, parallel wave-1 agents, closest paper read in full or flagged provisional, report + claims.yaml committed", "files": []}
+  ]
+}

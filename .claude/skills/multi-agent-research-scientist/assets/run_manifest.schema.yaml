@@ -1,0 +1,18 @@
+# One JSON record per run, append-only JSONL: research/manifests/runs/<experiment_id>.jsonl
+type: object
+required: [experiment_id, run_id, git_commit, dataset_version, seed, configuration_hash,
+           model, hardware, wall_time_s, metrics, timestamp]
+properties:
+  experiment_id: {type: string}
+  run_id: {type: string, description: uuid4}
+  git_commit: {type: string}
+  dataset_version: {type: string, description: hash of data/task spec}
+  seed: {type: integer}
+  configuration_hash: {type: string}
+  model: {type: object, description: "id, version/date or weights digest, decoding params"}
+  model_parameters: {type: [integer, "null"]}
+  hardware: {type: string}
+  wall_time_s: {type: number}
+  tokens_or_cost: {type: [object, "null"]}
+  metrics: {type: object}
+  timestamp: {type: string, description: ISO-8601 UTC}

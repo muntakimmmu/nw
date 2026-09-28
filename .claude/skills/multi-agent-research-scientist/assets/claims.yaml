@@ -1,0 +1,25 @@
+# Claim -> evidence contract. A claim with no experiment is prohibited; an experiment
+# supporting no claim is removed. Status: HYPOTHESIZED | SUPPORTED | REFUTED | WITHDRAWN.
+C1:
+  claim: >
+    <one falsifiable sentence: M + Δ improves <primary metric> under regime R vs strongest baselines>
+  experiments: [E1, E5]
+  status: HYPOTHESIZED
+C2:
+  claim: >
+    <mechanism: the improvement is caused by <measurable variable Z>; dose-response holds>
+  experiments: [E2, E3]
+  status: HYPOTHESIZED
+C3:
+  claim: >
+    <generalization + negative control: effect holds on <external data>, is ≈0 where theory predicts none>
+  experiments: [E6]
+  status: HYPOTHESIZED
+C4:
+  claim: >
+    <boundary: Δ stops helping beyond R*>
+  experiments: [E8]
+  status: HYPOTHESIZED
+
+killed_or_withdrawn:   # keep the audit trail; never delete
+  # C0: {claim: "...", status: WITHDRAWN, reason: "...", evidence: "path"}
